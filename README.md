@@ -27,13 +27,5 @@
 
 
 <p align="center">
-  <strong><sub>⚠️ Disclaimer ⚠️</sub></strong><br>
-  <sub>MiTools is an unofficial app developed independently and is not affiliated with Xiaomi.</sub>
-</p>
-
-
----
-
-<p align="center">
   <b><a href="LICENSE">Apache 2.0 License</a></b>
 </p>
