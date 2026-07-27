@@ -3,14 +3,21 @@
 </p>
 
 <p align="center">
-  <strong>In a world racing toward simplicity and speed, MiTools embodies a forward-looking vision to align tools with the demands of the era!</strong><br>
-  An application that transforms Xiaomi's official tools into a flexible mobile experience, replacing the need for a PC with the ability to use another phone!
+  <strong>Xiaomi's PC tools, on your phone.</strong>
 </p>
 
 ---
 
 <p align="center">
   <img src="screen.png" alt="MiTools Screenshot" width="250"/>
+</p>
+
+---
+
+<p align="center">
+  <b>Mi Unlock</b>: Unlock bootloader<br>
+  <b>Mi Assistant</b>: planned, no ETA<br>
+  <b>Mi Flash</b>: planned, no ETA
 </p>
 
 ---
@@ -24,7 +31,6 @@
 </p>
 
 ---
-
 
 <p align="center">
   <b><a href="LICENSE">Apache 2.0 License</a></b>
