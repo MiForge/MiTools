@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Xiaomi's PC tools, on your phone.</strong>
+  <strong>Xiaomi's PC tools on Android.</strong>
 </p>
 
 ---
