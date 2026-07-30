@@ -84,11 +84,11 @@ class MiUnlockLoginActivity : AppCompatActivity() {
         if (cookieString != null) {
             fun extractValue(key: String) = cookieString.split(";").map { it.trim() }
                 .find { it.startsWith("$key=") }?.split("=")?.getOrNull(1)
-            
+
             passToken = extractValue("passToken")
             deviceId = extractValue("deviceId")
             userId = extractValue("userId")
-            
+
             return userId?.isNotEmpty() == true && 
                    passToken?.isNotEmpty() == true && 
                    deviceId?.isNotEmpty() == true
@@ -108,7 +108,7 @@ class MiUnlockLoginActivity : AppCompatActivity() {
             builtInZoomControls = false
             displayZoomControls = false
         }
-        
+
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 if (!monitoringEnded) {
@@ -116,7 +116,7 @@ class MiUnlockLoginActivity : AppCompatActivity() {
                 }
                 return false
             }
-            
+
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 progressBar.visibility = View.VISIBLE
                 handler.removeCallbacksAndMessages(null)
@@ -135,9 +135,13 @@ class MiUnlockLoginActivity : AppCompatActivity() {
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: android.webkit.WebResourceError) {
+                if (!request.isForMainFrame) {
+                    return
+                }
                 progressBar.visibility = View.GONE
                 monitoringEnded = true
-                Toast.makeText(this@MiUnlockLoginActivity, "Error loading page", Toast.LENGTH_SHORT).show()
+                val reason = "${error.description} (code ${error.errorCode})"
+                Toast.makeText(this@MiUnlockLoginActivity, "Error loading page: $reason", Toast.LENGTH_LONG).show()
                 val intent = Intent(this@MiUnlockLoginActivity, MainActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 }
@@ -146,12 +150,12 @@ class MiUnlockLoginActivity : AppCompatActivity() {
                 finish()
             }
         }
-        
+
         CookieManager.getInstance().run {
             setAcceptCookie(true)
             setAcceptThirdPartyCookies(webView, true)
         }
-        
+
         webView.loadUrl(initialUrl)
         handler.postDelayed({
             if (progressBar.visibility == View.VISIBLE) {
@@ -165,7 +169,7 @@ class MiUnlockLoginActivity : AppCompatActivity() {
         CookieManager.getInstance().getCookie("https://account.xiaomi.com")?.let { cookieString ->
             fun extractValue(key: String) = cookieString.split(";").map { it.trim() }
                 .find { it.startsWith("$key=") }?.split("=")?.getOrNull(1)
-            
+
             passToken = passToken ?: extractValue("passToken")
             deviceId = deviceId ?: extractValue("deviceId")
             userId = userId ?: extractValue("userId")
@@ -178,7 +182,7 @@ class MiUnlockLoginActivity : AppCompatActivity() {
                 .replace("\\u003E", ">")
                 .replace("\\\"", "\"")
                 .replace("\\\\", "\\")
-            
+
             if (cleanedHtml.contains(endPattern)) {
                 if (passToken?.isNotEmpty() != true || deviceId?.isNotEmpty() != true || userId?.isNotEmpty() != true) {
                     view.loadUrl(initialUrl)
@@ -197,7 +201,7 @@ class MiUnlockLoginActivity : AppCompatActivity() {
 
     private fun returnResults() {
         val hasAllValues = passToken?.isNotEmpty() == true && deviceId?.isNotEmpty() == true && userId?.isNotEmpty() == true
-        
+
         if (hasAllValues) {
             setResult(Activity.RESULT_OK, Intent().apply {
                 putExtra("passToken", passToken)
