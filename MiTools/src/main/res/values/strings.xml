@@ -5,4 +5,9 @@
     <string name="mi_flash">Mi Flash</string>
     <string name="website">offici5l.github.io</string>
     <string name="app_logo_description">MiTools</string>
+    <string name="mi_assistant_flash">Flash Official Recovery ROM</string>
+    <string name="mi_assistant_check">ROMs That Can Be Flashed</string>
+    <string name="mi_assistant_hint">On the phone: Recovery &gt; Connect with Mi Assistant,\nthen connect it with a USB OTG cable.</string>
+    <string name="mi_assistant_read_info">Read Info</string>
+    <string name="mi_assistant_back">Back</string>
 </resources>

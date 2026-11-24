@@ -16,7 +16,7 @@
 
 <p align="center">
   <b>Mi Unlock</b>: Unlock bootloader<br>
-  <b>Mi Assistant</b>: planned, no ETA<br>
+  <b>Mi Assistant</b>: read info, flash official recovery ROMs, list flashable ROMs, format/wipe, reboot/shutdown, minidump, list/pull files (no root, USB OTG)<br>
   <b>Mi Flash</b>: planned, no ETA
 </p>
 

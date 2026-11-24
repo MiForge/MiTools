@@ -26,7 +26,7 @@ jobs:
       - name: Get version info from Gradle
         id: get_version
         run: |
-          VERSION_NAME=$(./gradlew -q :MiTools:printVersionInfo | grep versionName | cut -d '=' -f 2)
+          VERSION_NAME=$(bash ./gradlew -q :MiTools:printVersionInfo | grep versionName | cut -d '=' -f 2)
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
 
       - name: Build Release APK
@@ -34,7 +34,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: bash ./gradlew assembleRelease
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

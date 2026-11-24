@@ -18,7 +18,7 @@ jobs:
           cache: 'gradle'
 
       - name: Build Debug APK
-        run: ./gradlew :MiTools:assembleDebug
+        run: bash ./gradlew :MiTools:assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

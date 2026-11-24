@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.offici5l.mitools.miassistant.MiAssistantActivity
 import com.offici5l.mitools.miunlock.MiUnlockActivity
 
 class MainActivity : AppCompatActivity() {
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         miAssistantButton.setOnClickListener {
-            Toast.makeText(this, "Mi Assistant: Coming Soon", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, MiAssistantActivity::class.java))
         }
 
         miFlashButton.setOnClickListener {
