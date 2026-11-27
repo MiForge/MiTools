@@ -69,11 +69,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/mi_flash"
-                android:backgroundTint="#CCCCCC"
+                android:backgroundTint="@color/orange"
                 android:textColor="@color/white"
                 android:padding="14dp"
-                android:enabled="true"
-                android:visibility="gone"
                 android:layout_marginBottom="12dp" />
 
         </LinearLayout>

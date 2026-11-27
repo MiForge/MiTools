@@ -17,7 +17,7 @@
 <p align="center">
   <b>Mi Unlock</b>: Unlock bootloader<br>
   <b>Mi Assistant</b>: read info, flash official recovery ROMs, list flashable ROMs, format/wipe, reboot/shutdown, minidump, list/pull files (no root, USB OTG)<br>
-  <b>Mi Flash</b>: planned, no ETA
+  <b>Mi Flash</b>: flash Xiaomi fastboot ROMs (.tgz): Clean all / Save user data / Clean all and lock (no root, USB OTG)
 </p>
 
 ---

@@ -4,13 +4,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Locale
 
-/** One entry of a remote directory (LIS2 / DNT2 record). */
 class RemoteEntry(val name: String, val mode: Long, val size: Long, val mtime: Long) {
     val isDir: Boolean get() = (mode and 0xF000L) == 0x4000L
     val isLink: Boolean get() = (mode and 0xF000L) == 0xA000L
 }
 
-/** Small FIFO byte buffer used to parse the sync protocol. */
 class ByteQueue {
     private var a = ByteArray(64 * 1024)
     private var s = 0
@@ -80,7 +78,6 @@ fun humanSize(n: Long): String {
     return String.format(Locale.US, "%.1f %s", v, units[i])
 }
 
-/** Like Python's stat.filemode(): "drwxr-xr-x". */
 fun fileModeString(mode: Long): String {
     val type = when (mode and 0xF000L) {
         0x4000L -> 'd'

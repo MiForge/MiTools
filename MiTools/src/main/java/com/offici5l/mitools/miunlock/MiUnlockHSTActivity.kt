@@ -37,7 +37,6 @@ class MiUnlockHSTActivity : AppCompatActivity() {
         deviceId = intent.getStringExtra("deviceId") ?: return finishWithError()
         userId = intent.getStringExtra("userId") ?: return finishWithError()
 
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val cookies = mapOf("passToken" to passToken, "deviceId" to deviceId, "userId" to userId)
@@ -48,7 +47,7 @@ class MiUnlockHSTActivity : AppCompatActivity() {
                     .build()
 
                 val region = getRegion(client)
-                
+
                 runOnUiThread {
                     noticeTextView.text = "Account region: $region"
                 }

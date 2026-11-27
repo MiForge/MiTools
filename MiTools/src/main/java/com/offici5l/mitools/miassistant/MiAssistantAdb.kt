@@ -20,10 +20,6 @@ class DeviceDisconnected(message: String = "The device was disconnected.") : Dev
 class DeviceIOError(message: String) : DeviceException(message)
 class DeviceWriteError(message: String) : DeviceException(message)
 
-/**
- * Minimal ADB wire protocol over Android's USB Host API.
- * (Port of the transport / sideload logic of the `miasst` CLI. No root needed.)
- */
 class MiAssistantAdb(
     private val usbManager: UsbManager,
     private val device: UsbDevice,
@@ -45,7 +41,7 @@ class MiAssistantAdb(
 
         const val ADB_VERSION = 0x01000001
         const val ADB_MAX_DATA = 1024 * 1024
-        /** Fallback only: the real block size is the max-data the phone announces in its banner. */
+
         const val SIDELOAD_CHUNK_SIZE = 1024 * 64
         const val USB_TIMEOUT_MS = 10_000
         const val WRITE_TIMEOUT_MS = 30_000
@@ -56,7 +52,6 @@ class MiAssistantAdb(
         const val SYNC_IDLE_LIMIT_MS = 30_000L
         const val SYNC_MAX_PATH = 1024
 
-        /** Opens the device and claims its ADB interface. Throws DeviceException on failure. */
         fun open(usbManager: UsbManager, device: UsbDevice): MiAssistantAdb {
             val eps = MiAssistantUsb.findEndpoints(device)
                 ?: throw DeviceException("Device is not in Mi Assistant mode.")
@@ -73,7 +68,6 @@ class MiAssistantAdb(
     private var nextId = 1
     val banner = LinkedHashMap<String, String>()
 
-    /** Sideload block size = max-data announced by the phone in its "sideload::" banner packet. */
     var sideloadChunkSize: Int = SIDELOAD_CHUNK_SIZE
         private set
 
@@ -90,10 +84,6 @@ class MiAssistantAdb(
 
     private fun stillConnected(): Boolean = usbManager.deviceList.values.any { it.deviceName == device.deviceName }
 
-    // ---- raw USB -------------------------------------------------------------------------
-
-    // Receive buffer: we always ask the USB stack for a big chunk (never "exactly 24 bytes"), so
-    // a device that coalesces header+payload, or a short packet, can't cause overflow/lost data.
     private val rx = ByteArray(ADB_MAX_DATA + 24 + 2 * RX_CHUNK)
     private var rxStart = 0
     private var rxEnd = 0
@@ -101,7 +91,7 @@ class MiAssistantAdb(
 
     private fun clearHalt(ep: UsbEndpoint) {
         try {
-            // CLEAR_FEATURE(ENDPOINT_HALT) on the endpoint
+
             connection.controlTransfer(0x02, 0x01, 0, ep.address, null, 0, 1000)
         } catch (_: Exception) {
         }
@@ -128,7 +118,6 @@ class MiAssistantAdb(
         }
     }
 
-    /** One bulk-IN transfer into the receive buffer. Returns false on a plain timeout. */
     private fun fill(timeoutMs: Int): Boolean {
         if (rxStart == rxEnd) {
             rxStart = 0
@@ -147,9 +136,8 @@ class MiAssistantAdb(
         }
         if (r == 0) return false
         if (!stillConnected()) throw DeviceDisconnected()
-        if (System.currentTimeMillis() - t0 >= timeoutMs - 500) return false // ordinary timeout
+        if (System.currentTimeMillis() - t0 >= timeoutMs - 500) return false
 
-        // Failed immediately: the endpoint is in an error state. Try to recover, then give up loudly.
         readErrors++
         if (readErrors == 3) clearHalt(epIn)
         if (readErrors >= 15) throw DeviceIOError("USB read keeps failing (result=$r)")
@@ -157,7 +145,6 @@ class MiAssistantAdb(
         return false
     }
 
-    /** Makes sure at least [n] bytes are buffered. Returns false on timeout (nothing is consumed). */
     private fun ensure(n: Int, timeoutMs: Int): Boolean {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (rxEnd - rxStart < n) {
@@ -167,8 +154,6 @@ class MiAssistantAdb(
         }
         return true
     }
-
-    // ---- ADB packets ---------------------------------------------------------------------
 
     class Packet(val cmd: Int, val arg0: Int, val arg1: Int, val data: ByteArray)
 
@@ -187,10 +172,10 @@ class MiAssistantAdb(
         val arg0 = bb.int
         val arg1 = bb.int
         val length = bb.int
-        bb.int // checksum
+        bb.int
         val magic = bb.int
         if (magic != cmd.inv() || length < 0 || length > ADB_MAX_DATA) {
-            rxStart = rxEnd // drop the garbage so the stream can resynchronise
+            rxStart = rxEnd
             throw DeviceIOError("Invalid ADB packet (cmd=${Integer.toHexString(cmd)}, len=$length)")
         }
         if (!ensure(24 + length, USB_TIMEOUT_MS)) throw DeviceTimeout()
@@ -199,9 +184,6 @@ class MiAssistantAdb(
         return Packet(cmd, arg0, arg1, data)
     }
 
-    // ---- session -------------------------------------------------------------------------
-
-    /** Handshake. Reads the "sideload::" banner the phone sends in Mi Assistant mode. */
     fun connectHost() {
         sendPacket(ADB_CNXN, ADB_VERSION, ADB_MAX_DATA, "host::\u0000".toByteArray())
         repeat(10) {
@@ -224,7 +206,6 @@ class MiAssistantAdb(
         throw DeviceException("The device did not send a valid sideload banner. Make sure it is in Mi Assistant mode.")
     }
 
-    /** Runs a one-shot service command like "getsn:" and returns its text answer. */
     fun command(command: String): String {
         val localId = nextId++
         sendPacket(ADB_OPEN, localId, 0, command.toByteArray() + 0.toByte())
@@ -275,14 +256,6 @@ class MiAssistantAdb(
         return out
     }
 
-    /**
-     * Streams the ROM zip to the phone using the "sideload-host" service; the phone requests
-     * 64 KB blocks by index. [validate] is the signed token returned by the Xiaomi server.
-     *
-     * The phone reads the whole zip TWICE: pass 1 = verification, pass 2 = installation.
-     * [onProgress] receives (step, percent): step 1 = transferring/verifying, step 2 = installing,
-     * each going 0..100 on its own. Returns the final message printed by the phone's recovery.
-     */
     suspend fun sideload(
         input: FileInputStream,
         fileSize: Long,
@@ -365,7 +338,6 @@ class MiAssistantAdb(
             }
             val bytes = chunk.array().copyOf(chunk.position())
 
-            // Never drop the answer to a block request: the phone asks only once.
             var attempt = 0
             while (true) {
                 try {
@@ -407,7 +379,6 @@ class MiAssistantAdb(
         return finalMessage
     }
 
-    /** The ADB "sync:" service (List Files / Pull File). Port of _SyncStream in core.py. */
     inner class SyncStream {
         private val localId = nextId++
         private var remoteId: Int? = null
@@ -427,7 +398,6 @@ class MiAssistantAdb(
             }
         }
 
-        /** Reads one packet. Returns true if it belonged to this stream. */
         fun pump(): Boolean {
             val p = try {
                 readPacket()
