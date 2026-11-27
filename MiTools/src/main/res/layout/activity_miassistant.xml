@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Menu: scrollable list of buttons (filled from code), centered when short -->
+    
     <ScrollView
         android:id="@+id/menuContainer"
         android:layout_width="match_parent"
@@ -20,7 +20,7 @@
             android:padding="24dp" />
     </ScrollView>
 
-    <!-- Working: status / step + progress -->
+    
     <LinearLayout
         android:id="@+id/workContainer"
         android:layout_width="match_parent"
@@ -71,7 +71,7 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Result: info / ROM list / final message -->
+    
     <LinearLayout
         android:id="@+id/resultContainer"
         android:layout_width="match_parent"

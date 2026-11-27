@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.0
+- Add **Mi Flash**
+
 ## 2.0.0
 - Add **Mi Assistant**
 

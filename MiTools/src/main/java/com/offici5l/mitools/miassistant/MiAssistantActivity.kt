@@ -42,10 +42,6 @@ import java.util.Date
 import java.util.Locale
 import kotlin.coroutines.resume
 
-/**
- * Mi Assistant: everything the `miasst` CLI can do, with a phone-friendly UI.
- * Uses the Android USB Host API, so it works without root.
- */
 class MiAssistantActivity : AppCompatActivity() {
 
     private enum class Action(val label: String, val command: String? = null, val warning: String? = null) {
@@ -78,7 +74,6 @@ class MiAssistantActivity : AppCompatActivity() {
     private var pendingRemote: String? = null
     private var inSubmenu = false
 
-    /** A menu button: either runs [action] or opens a sub menu with [children]. */
     private class MenuItem(
         val label: String,
         val action: Action? = null,
@@ -149,8 +144,6 @@ class MiAssistantActivity : AppCompatActivity() {
             it.visibility = if (it === panel) View.VISIBLE else View.GONE
         }
     }
-
-    // ---- what the engine can ask the screen to do ----------------------------------------
 
     private val ui = object : MiAssistantUi {
 
@@ -455,8 +448,6 @@ class MiAssistantActivity : AppCompatActivity() {
         return if (i <= 0) "/" else t.substring(0, i + 1)
     }
 
-    // ---- lifecycle -----------------------------------------------------------------------
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_miassistant)
@@ -508,7 +499,6 @@ class MiAssistantActivity : AppCompatActivity() {
         menuList.addView(button)
     }
 
-    /** Shows the main menu, or a sub menu (with a Back button at the bottom). */
     private fun showMenu(items: List<MenuItem>, sub: Boolean = false) {
         inSubmenu = sub
         menuList.removeAllViews()
@@ -535,9 +525,6 @@ class MiAssistantActivity : AppCompatActivity() {
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    // ---- actions -------------------------------------------------------------------------
-
-    /** Asks whatever is needed first (file, path, confirmation), then runs the action. */
     private fun onAction(action: Action) {
         if (job?.isActive == true) return
         when (action) {

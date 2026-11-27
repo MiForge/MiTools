@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- The Xiaomi OTA endpoint used by Mi Assistant only speaks plain HTTP (its payload is encrypted). -->
+    
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="false">update.miui.com</domain>
     </domain-config>

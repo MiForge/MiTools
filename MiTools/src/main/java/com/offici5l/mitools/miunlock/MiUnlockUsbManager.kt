@@ -50,9 +50,9 @@ object MiUnlockUsbManager {
                     )
                     val deferred = registerUsbReceiver(context)
                     usbManager.requestPermission(device, pendingIntent)
-                    
+
                     val granted = withTimeoutOrNull(PERMISSION_TIMEOUT_MS) { deferred.await() }
-                    
+
                     if (granted == true) {
                         return device
                     } else {
@@ -92,13 +92,13 @@ object MiUnlockUsbManager {
             }
         }
         val filter = IntentFilter(ACTION_USB_PERMISSION)
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             context.registerReceiver(usbReceiver, filter)
         }
-        
+
         return deferred
     }
 

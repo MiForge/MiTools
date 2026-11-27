@@ -97,7 +97,7 @@ class MiUnlockDActivity : AppCompatActivity() {
             addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
             addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         }
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
@@ -129,9 +129,9 @@ class MiUnlockDActivity : AppCompatActivity() {
     }
 
     private fun isFastbootDevice(device: UsbDevice): Boolean {
-        return device.vendorId == 0x18D1 || 
-               device.vendorId == 0x2717 || 
-               device.vendorId == 0x0BB4 || 
+        return device.vendorId == 0x18D1 ||
+               device.vendorId == 0x2717 ||
+               device.vendorId == 0x0BB4 ||
                device.vendorId == 0x0E8D
     }
 

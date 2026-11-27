@@ -17,12 +17,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
-/**
- * USB discovery for a phone that is in Xiaomi "Mi Assistant" (recovery sideload) mode.
- * Works without root: it uses the normal Android USB Host API (UsbManager).
- *
- * The device exposes the standard ADB interface: class 0xFF, subclass 0x42, protocol 0x01.
- */
 object MiAssistantUsb {
 
     private const val ACTION_USB_PERMISSION = "com.offici5l.mitools.MIASSISTANT_USB_PERMISSION"
@@ -33,7 +27,6 @@ object MiAssistantUsb {
 
     class Endpoints(val iface: UsbInterface, val epIn: UsbEndpoint, val epOut: UsbEndpoint)
 
-    /** Finds an ADB-style interface with a bulk IN and a bulk OUT endpoint. */
     fun findEndpoints(device: UsbDevice): Endpoints? {
         for (i in 0 until device.interfaceCount) {
             val iface = device.getInterface(i)
@@ -57,7 +50,6 @@ object MiAssistantUsb {
     fun findDevice(usbManager: UsbManager): UsbDevice? =
         usbManager.deviceList.values.firstOrNull { findEndpoints(it) != null }
 
-    /** Waits (polling) until a device in Mi Assistant mode is plugged in. Cancellable. */
     suspend fun waitForDevice(usbManager: UsbManager, pollMs: Long = 700L): UsbDevice {
         while (true) {
             findDevice(usbManager)?.let { return it }
@@ -65,7 +57,6 @@ object MiAssistantUsb {
         }
     }
 
-    /** Asks the user for USB permission (the system dialog). Returns true if granted. */
     suspend fun ensurePermission(context: Context, usbManager: UsbManager, device: UsbDevice): Boolean {
         if (usbManager.hasPermission(device)) return true
 
@@ -83,7 +74,7 @@ object MiAssistantUsb {
         try {
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-            // Explicit intent (setPackage) is required for mutable PendingIntents on Android 14+.
+
             val intent = Intent(ACTION_USB_PERMISSION).setPackage(context.packageName)
             val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, flags)
             usbManager.requestPermission(device, pendingIntent)

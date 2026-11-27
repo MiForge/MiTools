@@ -15,14 +15,6 @@
 ---
 
 <p align="center">
-  <b>Mi Unlock</b>: Unlock bootloader<br>
-  <b>Mi Assistant</b>: read info, flash official recovery ROMs, list flashable ROMs, format/wipe, reboot/shutdown, minidump, list/pull files (no root, USB OTG)<br>
-  <b>Mi Flash</b>: planned, no ETA
-</p>
-
----
-
-<p align="center">
   <a href="https://github.com/MiForge/MiTools/releases" style="text-decoration:none;">
     <img src="https://img.shields.io/badge/Download%20App-FF6700?style=flat&logo=android&logoColor=white" alt="Download App" width="180"/>
   </a>

@@ -13,32 +13,24 @@ import java.security.MessageDigest
 
 class RomItem(val fileName: String, val url: String)
 
-/** What the engine needs from the screen. */
 interface MiAssistantUi {
-    /** Short line shown while working (also resets the progress bar to "indeterminate"). */
+
     fun status(message: String)
 
-    /** Starts a new progress step, e.g. step 1 of 2 "Transferring". */
     fun step(step: Int, total: Int, label: String)
 
-    /** 0..100, or -1 for "unknown". */
     fun progress(percent: Int)
 
     fun showInfo(rows: List<Pair<String, String>>)
     fun showRoms(roms: List<RomItem>, title: String?)
     fun showFiles(path: String, entries: List<RemoteEntry>)
 
-    /** success: true = green, false = red, null = neutral. */
     fun showMessage(message: String, success: Boolean?)
     suspend fun confirm(message: String): Boolean
     suspend fun confirmTyped(message: String, word: String): Boolean
     suspend fun askText(title: String, message: String, hint: String, default: String = ""): String?
 }
 
-/**
- * High-level actions, ported from `miasst` (core.py): read info, flash_rom() and check_rom().
- * Everything here is blocking work: call it from Dispatchers.IO.
- */
 class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssistantUi) {
 
     private var info: Map<String, String>? = null
@@ -57,8 +49,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
         return i
     }
 
-    // ---- Read Info -----------------------------------------------------------------------
-
     fun readInfo() {
         ui.status("Reading device info ...")
         val i = getInfo()
@@ -75,8 +65,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
             )
         )
     }
-
-    // ---- local file ----------------------------------------------------------------------
 
     private suspend fun openZip(resolver: ContentResolver, uri: Uri): LocalZip? {
         var name = ""
@@ -98,7 +86,7 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
             ui.showMessage("Could not read the file size. Copy the ROM to the phone storage and try again.", false)
             return null
         }
-        // The sideload needs random access: make sure the descriptor is seekable.
+
         try {
             FileInputStream(pfd.fileDescriptor).channel.position(0)
         } catch (e: Exception) {
@@ -132,8 +120,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
     }
 
     private fun hex(b: ByteArray): String = b.joinToString("") { "%02x".format(it) }
-
-    // ---- Flash Official Recovery ROM -----------------------------------------------------
 
     suspend fun flashRom(resolver: ContentResolver, uri: Uri) {
         val zip = openZip(resolver, uri) ?: return
@@ -219,8 +205,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
         }
     }
 
-    // ---- ROMs That Can Be Flashed --------------------------------------------------------
-
     suspend fun checkRom(checkv: Map<String, ValidateEntry>? = null, title: String? = null) {
         val info = getInfo()
         ui.status("Looking for compatible ROMs ...")
@@ -239,8 +223,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
         else ui.showRoms(unique, title)
     }
 
-    // ---- simple commands: format / wipe / reboot / shutdown / minidump -------------------
-
     private fun outcome(text: String): Boolean? {
         val low = text.lowercase()
         return when {
@@ -258,7 +240,7 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
             if (connectionDrops) ui.showMessage(out.ifEmpty { "Command sent." }, true)
             else ui.showMessage(out.ifEmpty { "Done." }, outcome(out) ?: if (out.isEmpty()) true else null)
         } catch (e: DeviceException) {
-            // After reboot/shutdown the phone closes the connection: that is expected.
+
             if (connectionDrops) ui.showMessage("Command sent.", true)
             else ui.showMessage("${command.substringBefore(':')} failed: ${e.message}", false)
         }
@@ -280,8 +262,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
         val out = adb.command("format-frp:${signed.trim()}").trim()
         ui.showMessage(out.ifEmpty { "Done." }, outcome(out))
     }
-
-    // ---- List Files (LIS2) ---------------------------------------------------------------
 
     suspend fun listFiles(path: String) {
         ui.status("Listing files ...")
@@ -343,8 +323,6 @@ class MiAssistantEngine(private val adb: MiAssistantAdb, private val ui: MiAssis
             .sortedWith(compareBy({ !it.isDir }, { it.name.lowercase() }))
         ui.showFiles(path, list)
     }
-
-    // ---- Pull File (RCV2) ----------------------------------------------------------------
 
     suspend fun pullFile(resolver: ContentResolver, remote: String, outUri: Uri) {
         ui.status("Pulling file ...")

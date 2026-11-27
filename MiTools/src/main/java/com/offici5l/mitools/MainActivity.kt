@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.offici5l.mitools.miassistant.MiAssistantActivity
+import com.offici5l.mitools.miflash.MiFlashActivity
 import com.offici5l.mitools.miunlock.MiUnlockActivity
 
 class MainActivity : AppCompatActivity() {
@@ -41,7 +42,6 @@ class MainActivity : AppCompatActivity() {
         }
         versionText.text = "Version $versionName"
 
-        
         miUnlockButton.setOnClickListener {
             startActivity(Intent(this, MiUnlockActivity::class.java))
         }
@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         miFlashButton.setOnClickListener {
-            Toast.makeText(this, "Mi Flash: Coming Soon", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, MiFlashActivity::class.java))
         }
 
         val websiteText = getString(R.string.website)

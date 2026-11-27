@@ -89,8 +89,8 @@ class MiUnlockLoginActivity : AppCompatActivity() {
             deviceId = extractValue("deviceId")
             userId = extractValue("userId")
 
-            return userId?.isNotEmpty() == true && 
-                   passToken?.isNotEmpty() == true && 
+            return userId?.isNotEmpty() == true &&
+                   passToken?.isNotEmpty() == true &&
                    deviceId?.isNotEmpty() == true
         }
         return false

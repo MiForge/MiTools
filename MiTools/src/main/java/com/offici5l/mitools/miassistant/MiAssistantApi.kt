@@ -21,14 +21,8 @@ import javax.crypto.spec.SecretKeySpec
 
 class ApiException(message: String) : Exception(message)
 
-/** One package entry that carries a signed "Validate" token (see extractValidate). */
 class ValidateEntry(val md5: String?, val validate: String, val erase: Any?)
 
-/**
- * Talks to Xiaomi's OTA server the same way the PC "Mi Assistant" does:
- * an AES-CBC encrypted request describing the phone + the md5 of the ROM, and an
- * RSA-signed "Validate" token in the answer that the recovery checks before flashing.
- */
 object MiAssistantApi {
 
     private const val URL = "http://update.miui.com/updates/miotaV3.php"
@@ -52,7 +46,6 @@ object MiAssistantApi {
             .build()
     }
 
-    // JSON text exactly like Python's json.dumps (", " / ": " separators, ASCII-only).
     private fun jsonString(s: String): String {
         val sb = StringBuilder("\"")
         for (c in s) {
@@ -75,7 +68,6 @@ object MiAssistantApi {
         return cipher.doFinal(data)
     }
 
-    /** Asks the server about a package. [md5] = md5 of the local zip, or "" to list candidates. */
     fun validateRequest(info: Map<String, String>, md5: String?): JSONObject {
         val zone = info["romzone"]?.trim()?.toIntOrNull()
             ?: throw ApiException("The device returned an invalid ROM zone.")
@@ -92,7 +84,7 @@ object MiAssistantApi {
             "}"
 
         val enc = aes(Cipher.ENCRYPT_MODE, payload.toByteArray(Charsets.UTF_8))
-        // Same as Python's urllib.parse.quote(b64): '/' stays, '+' and '=' are escaped.
+
         val q = URLEncoder.encode(Base64.getEncoder().encodeToString(enc), "UTF-8").replace("%2F", "/")
 
         val body = "q=$q&t=&s=1".toByteArray(Charsets.US_ASCII)
@@ -121,10 +113,8 @@ object MiAssistantApi {
         }
     }
 
-    /** "PkgRom" object of a server answer (empty when absent). */
     fun pkgRom(response: JSONObject): JSONObject = response.optJSONObject("PkgRom") ?: JSONObject()
 
-    /** Verifies the server signature on a Validate token and returns the signed JSON. */
     fun validateDecrypt(validate: String): JSONObject {
         val key = publicKey
         val encrypted = Base64.getMimeDecoder().decode(validate)
@@ -158,14 +148,12 @@ object MiAssistantApi {
         }
     }
 
-    /** SHA1 recorded in a Validate token, or null if the token can't be verified. */
     fun signedSha1(validate: String): String? = try {
         validateDecrypt(validate).optString("SHA1").takeIf { it.isNotEmpty() }
     } catch (e: Exception) {
         null
     }
 
-    /** Collects every nested object that has a "Validate" token, keyed by its parent key. */
     fun extractValidate(root: JSONObject): LinkedHashMap<String, ValidateEntry> {
         val result = LinkedHashMap<String, ValidateEntry>()
         val seen = HashSet<String?>()
