@@ -1,0 +1,121 @@
+name: Build
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: Build variant
+        required: true
+        default: debug
+        type: choice
+        options:
+          - debug
+          - release
+      publish:
+        description: Publish target (release variant only)
+        required: true
+        default: artifact
+        type: choice
+        options:
+          - artifact
+          - prerelease
+          - release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+          cache: gradle
+
+      - name: Restore keystore
+        if: inputs.variant == 'release'
+        run: echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > MiTools/mitools.jks
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION_NAME=$(bash ./gradlew -q :MiTools:printVersionInfo | grep versionName | cut -d '=' -f 2)
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Build Debug
+        if: inputs.variant == 'debug'
+        run: bash ./gradlew :MiTools:assembleDebug
+
+      - name: Build Release
+        if: inputs.variant == 'release'
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: bash ./gradlew :MiTools:assembleRelease
+
+      - name: Upload artifact (debug)
+        if: inputs.variant == 'debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiTools-debug
+          path: MiTools/build/outputs/apk/debug/MiTools-debug.apk
+
+      - name: Upload artifact (release)
+        if: inputs.variant == 'release' && inputs.publish == 'artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiTools-release
+          path: MiTools/build/outputs/apk/release/MiTools-${{ steps.version.outputs.VERSION_NAME }}.apk
+
+      - name: Release notes from CHANGELOG.md
+        if: inputs.variant == 'release' && (inputs.publish == 'release' || inputs.publish == 'prerelease')
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.VERSION_NAME }}
+        run: |
+          awk -v v="$VERSION_NAME" '
+            /^## / { if (found) exit; if ($2 == v) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if ! grep -q '[^[:space:]]' RELEASE_NOTES.md; then
+            echo "Release v$VERSION_NAME" > RELEASE_NOTES.md
+          fi
+          cat RELEASE_NOTES.md
+
+      - name: GitHub Release
+        if: inputs.variant == 'release' && inputs.publish == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION_NAME }}
+          name: Release v${{ steps.version.outputs.VERSION_NAME }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: MiTools/build/outputs/apk/release/MiTools-${{ steps.version.outputs.VERSION_NAME }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: GitHub Prerelease
+        if: inputs.variant == 'release' && inputs.publish == 'prerelease'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ steps.version.outputs.VERSION_NAME }}
+          name: prerelease v${{ steps.version.outputs.VERSION_NAME }}
+          bodyFile: RELEASE_NOTES.md
+          prerelease: true
+          allowUpdates: true
+          removeArtifacts: true
+          replacesArtifacts: true
+          omitPrereleaseDuringUpdate: true
+          skipIfReleaseExists: false
+          artifacts: MiTools/build/outputs/apk/release/MiTools-${{ steps.version.outputs.VERSION_NAME }}.apk
+          artifactContentType: application/vnd.android.package-archive
+          token: ${{ secrets.GITHUB_TOKEN }}
